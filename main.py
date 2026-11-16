@@ -504,6 +504,7 @@ class Pipe:
 class GameState(Enum):
     READY = auto()
     PLAYING = auto()
+    PAUSED = auto()
     GAME_OVER = auto()
 
 
@@ -565,7 +566,7 @@ class FlappyBirdEngine:
         """
         key = key_name.upper()
 
-        if key == "SPACE":
+        if key in ("SPACE", "UP"):
             if self.state == GameState.READY:
                 self.state = GameState.PLAYING
                 self.bird.flap()
@@ -577,12 +578,27 @@ class FlappyBirdEngine:
                 self.audio.play("flap")
                 self.emitter.emit_flap(self.bird.x, self.bird.y)
                 return True
+            elif self.state == GameState.PAUSED:
+                self.state = GameState.PLAYING
+                return True
             elif self.state == GameState.GAME_OVER:
                 self.restart()
                 return True
 
-        elif key == "R" and self.state == GameState.GAME_OVER:
+        elif key == "R":
             self.restart()
+            return True
+
+        elif key == "P":
+            if self.state == GameState.PLAYING:
+                self.state = GameState.PAUSED
+                return True
+            elif self.state == GameState.PAUSED:
+                self.state = GameState.PLAYING
+                return True
+
+        elif key == "M":
+            self.audio.enabled = not self.audio.enabled
             return True
 
         return False
@@ -948,6 +964,19 @@ def draw_game_over_screen(
     surface.blit(prompt_surf, prompt_surf.get_rect(center=(cx, 385)))
 
 
+def draw_pause_screen(surface: pygame.Surface, font_title: pygame.font.Font, font_sub: pygame.font.Font) -> None:
+    """Renders translucent blur-style pause overlay."""
+    dim = pygame.Surface((CONFIG.WINDOW_WIDTH, CONFIG.WINDOW_HEIGHT), pygame.SRCALPHA)
+    dim.fill((0, 0, 0, 140))
+    surface.blit(dim, (0, 0))
+
+    cx = CONFIG.WINDOW_WIDTH // 2
+    title = font_title.render("PAUSED", True, Palette.ACCENT_GOLD)
+    sub = font_sub.render("Press [P] or [SPACE] to Resume", True, Palette.TEXT_WHITE)
+    surface.blit(title, title.get_rect(center=(cx, 260)))
+    surface.blit(sub, sub.get_rect(center=(cx, 310)))
+
+
 # ==============================================================================
 # 10. REAL IN-ENGINE SCREENSHOT CAPTURE PIPELINE
 # ==============================================================================
@@ -1175,21 +1204,30 @@ def main() -> None:
     if pygame is None:
         import shutil
         import subprocess
+
+        # 1. Check local virtualenv interpreter
+        project_dir = os.path.dirname(os.path.abspath(__file__))
+        venv_py = os.path.join(project_dir, ".venv", "Scripts", "python.exe")
+        if os.path.exists(venv_py):
+            cmd = [venv_py, os.path.abspath(__file__)] + sys.argv[1:]
+            sys.exit(subprocess.call(cmd))
+
+        # 2. Check uv package manager
         uv_exe = shutil.which("uv")
         if uv_exe:
-            print("[INFO] Pygame not detected in active interpreter. Relaunching via uv...")
             cmd = [uv_exe, "run", "--python", "3.12", "--with", "pygame", "python", os.path.abspath(__file__)] + sys.argv[1:]
             sys.exit(subprocess.call(cmd))
-        else:
-            print("=" * 78)
-            print("Pygame is not detected in your current Python environment.")
-            print("Running in pure headless simulation test mode:")
-            print("=" * 78)
-            run_test_suite()
-            print("\nTo launch the interactive 60 FPS graphical window:")
-            print("  pip install pygame")
-            print("  python main.py")
-            sys.exit(0)
+
+        # 3. Headless Fallback Mode
+        print("=" * 78)
+        print("Pygame is not detected in your current Python environment.")
+        print("Running in pure headless simulation test mode:")
+        print("=" * 78)
+        run_test_suite()
+        print("\nTo launch the interactive 60 FPS graphical window:")
+        print("  pip install pygame")
+        print("  python main.py")
+        sys.exit(0)
 
     # Interactive Graphical Mode
     pygame.init()
@@ -1221,16 +1259,23 @@ def main() -> None:
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key in (pygame.K_SPACE, pygame.K_UP):
                     engine.handle_input("SPACE")
                 elif event.key == pygame.K_r:
                     engine.handle_input("R")
+                elif event.key == pygame.K_p:
+                    engine.handle_input("P")
+                elif event.key == pygame.K_m:
+                    engine.handle_input("M")
                 elif event.key == pygame.K_ESCAPE:
                     running = False
                 elif event.key == pygame.K_t:
                     run_test_suite(verbose=True)
                 else:
                     engine.handle_input(pygame.key.name(event.key).upper())
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                # Primary mouse click acts as flap / restart
+                engine.handle_input("SPACE")
 
         # Update
         if engine.state == GameState.PLAYING:
@@ -1262,6 +1307,9 @@ def main() -> None:
             draw_ready_screen(screen, font_large, font_medium)
         elif engine.state == GameState.PLAYING:
             draw_hud(screen, engine.score, engine.high_score, font_score, font_small)
+        elif engine.state == GameState.PAUSED:
+            draw_hud(screen, engine.score, engine.high_score, font_score, font_small)
+            draw_pause_screen(screen, font_large, font_medium)
         elif engine.state == GameState.GAME_OVER:
             draw_hud(screen, engine.score, engine.high_score, font_score, font_small)
             draw_game_over_screen(

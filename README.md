@@ -125,8 +125,13 @@ All four mandatory curriculum test cases are integrated into the automated CLI s
 
 ## 6. Execution & CLI Options
 
-The implementation features a rich command-line interface supporting headless CI/CD automation, benchmarks, and interactive gameplay:
+The implementation supports instant one-click execution via Windows batch scripts, direct Python CLI commands, headless CI/CD automation, and benchmarks:
 
+### 6.1 One-Click Windows Launchers
+- **`run_game.bat`**: Automatically activates the embedded virtual environment and launches the 60 FPS graphical arcade game.
+- **`run_tests.bat`**: Executes the formal acceptance test suite with full output logging and pauses for review.
+
+### 6.2 Python CLI Commands
 ```bash
 # 1. Run Interactive 60 FPS Pygame Arcade Window
 python main.py
@@ -140,6 +145,16 @@ python main.py --benchmark
 # 4. Generate Authentic In-Engine Screen Captures
 python main.py --capture-screenshots
 ```
+
+### 6.3 In-Game Control Bindings
+| Keystroke / Input | Action | Game State Context |
+| :---: | :--- | :--- |
+| **`SPACE` / `UP` / Click** | Upward Flap Impulse ($v = -10$) | `READY` (starts game) / `PLAYING` |
+| **`SPACE` / `R`** | Immediate Restart to Initial State | `GAME_OVER` |
+| **`P`** | Toggle Pause / Resume | `PLAYING` $\longleftrightarrow$ `PAUSED` |
+| **`M`** | Toggle Procedural Chiptune Audio | All States |
+| **`T`** | Run Acceptance Test Suite in Console | In-Game Live Verification |
+| **`ESC`** | Graceful Exit | All States |
 
 ### Benchmark Telemetry
 ```text
