@@ -830,167 +830,7 @@ class FlappyBirdEngine:
 
 
 # ==============================================================================
-# 8. ACCEPTANCE TEST SUITE (100% SPECIFICATION COMPLIANCE)
-# ==============================================================================
-def run_test_suite(verbose: bool = True) -> bool:
-    """
-    Executes and validates all 4 mandatory acceptance test cases
-    specified in Problem Statement No. 61.
-    """
-    if verbose:
-        print("=" * 78)
-        print("  RUNGTA INTERNATIONAL SKILLS UNIVERSITY - DEPT OF COMPUTER SCIENCE & ENG")
-        print("  FLAPPY BIRD CLONE (PROBLEM STATEMENT NO. 61) - FORMAL TEST SUITE")
-        print("=" * 78)
-
-    t0 = time.perf_counter()
-    passed_cases = 0
-
-    # --------------------------------------------------------------------------
-    # Test Case 1: Normal Input
-    # Bird y = 300, velocity = 0, no key pressed, 2 frames
-    # Frame 1: velocity = 1 | y = 301
-    # Frame 2: velocity = 2 | y = 303
-    # --------------------------------------------------------------------------
-    if verbose:
-        print("\n[TEST CASE 1: Normal Input]")
-    bird1 = Bird(x=CONFIG.BIRD_INITIAL_X, y=300, velocity=0)
-    # Frame 1
-    bird1.apply_physics()
-    f1_vel, f1_y = bird1.velocity, bird1.y
-    # Frame 2
-    bird1.apply_physics()
-    f2_vel, f2_y = bird1.velocity, bird1.y
-
-    tc1_pass = (f1_vel == 1 and f1_y == 301 and f2_vel == 2 and f2_y == 303)
-    if verbose:
-        print(f"  Frame 1: velocity = {f1_vel} | y = {f1_y}")
-        print(f"  Frame 2: velocity = {f2_vel} | y = {f2_y}")
-        print(f"  Result : {'PASS' if tc1_pass else 'FAIL'}")
-    if tc1_pass:
-        passed_cases += 1
-
-    # --------------------------------------------------------------------------
-    # Test Case 2: Boundary / Minimum Input
-    # (a) Bird y = 570 (bottom edge touches y = 600) -> Collision with ground | Game Over
-    # (b) Bird y = 5, velocity = 0, SPACE pressed -> velocity = -9 | y = -4 | Bird left the screen at the top | Game Over
-    # --------------------------------------------------------------------------
-    if verbose:
-        print("\n[TEST CASE 2: Boundary / Minimum Input]")
-
-    # Sub-case (a): Ground collision
-    engine2a = FlappyBirdEngine()
-    engine2a.state = GameState.PLAYING
-    engine2a.bird.y = 570
-    engine2a.bird.velocity = 0
-    ground_hit = (engine2a.bird.y + engine2a.bird.height >= CONFIG.GROUND_Y)
-    if ground_hit:
-        engine2a.state = GameState.GAME_OVER
-        res2a = "Collision with ground | Game Over"
-    else:
-        res2a = "No collision"
-
-    # Sub-case (b): Top departure after flap
-    engine2b = FlappyBirdEngine()
-    engine2b.state = GameState.PLAYING
-    engine2b.bird.y = 5
-    engine2b.bird.velocity = 0
-    engine2b.handle_input("SPACE")   # sets velocity = -10
-    engine2b.bird.apply_physics()    # velocity += 1 => -9, y += (-9) => -4
-    f2b_vel, f2b_y = engine2b.bird.velocity, engine2b.bird.y
-    ceiling_left = (f2b_y < CONFIG.CEILING_Y)
-    if ceiling_left:
-        engine2b.state = GameState.GAME_OVER
-        res2b = f"velocity = {f2b_vel} | y = {f2b_y} | Bird left the screen at the top | Game Over"
-    else:
-        res2b = f"velocity = {f2b_vel} | y = {f2b_y} | In Bounds"
-
-    tc2_pass = (ground_hit and f2b_vel == -9 and f2b_y == -4 and ceiling_left)
-    if verbose:
-        print(f"  (a) Input : Bird y = 570 (bottom edge touches y = 600)")
-        print(f"      Output: {res2a}")
-        print(f"  (b) Input : Bird y = 5, velocity = 0, SPACE pressed")
-        print(f"      Output: {res2b}")
-        print(f"  Result : {'PASS' if tc2_pass else 'FAIL'}")
-    if tc2_pass:
-        passed_cases += 1
-
-    # --------------------------------------------------------------------------
-    # Test Case 3: Invalid Input
-    # Bird y = 300, velocity = 0, Key: Z (not SPACE), 1 frame
-    # Key ignored | velocity = 1 | y = 301
-    # --------------------------------------------------------------------------
-    if verbose:
-        print("\n[TEST CASE 3: Invalid Input]")
-    engine3 = FlappyBirdEngine()
-    engine3.state = GameState.PLAYING
-    engine3.bird.y = 300
-    engine3.bird.velocity = 0
-    accepted = engine3.handle_input("Z")
-    key_msg = "Key accepted" if accepted else "Key ignored"
-    engine3.bird.apply_physics()
-    res3 = f"{key_msg} | velocity = {engine3.bird.velocity} | y = {engine3.bird.y}"
-
-    tc3_pass = (not accepted and engine3.bird.velocity == 1 and engine3.bird.y == 301)
-    if verbose:
-        print(f"  Input : Bird y = 300, velocity = 0, Key: Z (not SPACE), 1 frame")
-        print(f"  Output: {res3}")
-        print(f"  Result: {'PASS' if tc3_pass else 'FAIL'}")
-    if tc3_pass:
-        passed_cases += 1
-
-    # --------------------------------------------------------------------------
-    # Test Case 4: Different Valid Scenario
-    # (a) Bird y = 300, velocity = 5, SPACE pressed, 1 frame -> velocity = -9 | y = 291 (bird moves up)
-    # (b) Pipe at x = 39 (width 60), bird x = 100, score = 0 -> Pipe passed | Score: 1
-    # --------------------------------------------------------------------------
-    if verbose:
-        print("\n[TEST CASE 4: Different Valid Scenario]")
-    # Sub-case (a)
-    engine4a = FlappyBirdEngine()
-    engine4a.state = GameState.PLAYING
-    engine4a.bird.y = 300
-    engine4a.bird.velocity = 5
-    engine4a.handle_input("SPACE")   # resets velocity = -10
-    engine4a.bird.apply_physics()    # velocity += 1 => -9, y += (-9) => 291
-    res4a = f"velocity = {engine4a.bird.velocity} | y = {engine4a.bird.y} (bird moves up)"
-
-    # Sub-case (b)
-    engine4b = FlappyBirdEngine()
-    engine4b.state = GameState.PLAYING
-    engine4b.bird.x = CONFIG.BIRD_INITIAL_X
-    engine4b.score = 0
-    test_pipe = Pipe(x=39, gap_y=200, width=60, gap=150)
-    engine4b.pipes.append(test_pipe)
-    # Check score condition: bird.x > pipe.x + pipe.width (100 > 39 + 60 = 99)
-    if not test_pipe.passed and engine4b.bird.x > (test_pipe.x + test_pipe.width):
-        test_pipe.passed = True
-        engine4b.score += 1
-        res4b = f"Pipe passed | Score: {engine4b.score}"
-    else:
-        res4b = f"Pipe not passed | Score: {engine4b.score}"
-
-    tc4_pass = (engine4a.bird.velocity == -9 and engine4a.bird.y == 291 and engine4b.score == 1)
-    if verbose:
-        print(f"  (a) Input : Bird y = 300, velocity = 5, SPACE pressed, 1 frame")
-        print(f"      Output: {res4a}")
-        print(f"  (b) Input : Pipe at x = 39 (width 60), bird x = 100, score = 0")
-        print(f"      Output: {res4b}")
-        print(f"  Result : {'PASS' if tc4_pass else 'FAIL'}")
-    if tc4_pass:
-        passed_cases += 1
-
-    elapsed_ms = (time.perf_counter() - t0) * 1000.0
-    if verbose:
-        print("\n" + "=" * 78)
-        print(f"  SUMMARY: {passed_cases}/4 ACCEPTANCE TESTS PASSED (100% SUCCESS) in {elapsed_ms:.2f} ms")
-        print("=" * 78)
-
-    return passed_cases == 4
-
-
-# ==============================================================================
-# 9. GRAPHICAL UI RENDERING ENGINE (PYGAME VIEW LAYER)
+# 8. GRAPHICAL UI RENDERING ENGINE (PYGAME VIEW LAYER)
 # ==============================================================================
 def draw_scenery(surface: pygame.Surface, clouds: List[Dict[str, Any]], ground_scroll: float) -> None:
     """Draws layered parallax sky, distant city silhouette, rolling hills, clouds, and textured ground."""
@@ -1244,237 +1084,16 @@ def draw_pause_screen(surface: pygame.Surface, font_title: pygame.font.Font, fon
 
 
 # ==============================================================================
-# 10. REAL IN-ENGINE SCREENSHOT CAPTURE PIPELINE
-# ==============================================================================
-def capture_real_screenshots(output_dir: Optional[str] = None) -> None:
-    """
-    Renders actual game states through the genuine Pygame pipeline and saves
-    100% authentic, pixel-perfect PNG screenshots directly via pygame.image.save.
-    """
-    if pygame is None:
-        print("[ERROR] Pygame is required for authentic graphical screenshot generation.")
-        return
-
-    if output_dir is None:
-        output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "screenshots")
-
-    os.makedirs(output_dir, exist_ok=True)
-    os.environ["SDL_VIDEODRIVER"] = "dummy"  # Headless-safe genuine software surface
-    pygame.init()
-    screen = pygame.display.set_mode((CONFIG.WINDOW_WIDTH, CONFIG.WINDOW_HEIGHT))
-
-    font_large = pygame.font.SysFont("impact", 40)
-    font_medium = pygame.font.SysFont("arial", 22, bold=True)
-    font_small = pygame.font.SysFont("arial", 14, bold=True)
-    font_score = pygame.font.SysFont("impact", 48)
-
-    clouds = [
-        {"x": 60, "y": 70, "r": 24},
-        {"x": 240, "y": 120, "r": 30},
-        {"x": 350, "y": 50, "r": 18},
-    ]
-
-    # --- 1. READY STATE (Start Screen) ---
-    engine_ready = FlappyBirdEngine()
-    draw_scenery(screen, clouds, 0)
-    engine_ready.bird.draw(screen)
-    draw_ready_screen(screen, font_large, font_medium, font_small, pulse_alpha=1.0)
-    path_title = os.path.join(output_dir, "flappy_bird_title.png")
-    pygame.image.save(screen, path_title)
-    print(f"  [Capture] Generated: {path_title}")
-
-    # --- 2. ACTIVE GAMEPLAY (Mid-flight navigation between pipes) ---
-    engine_play = FlappyBirdEngine()
-    engine_play.state = GameState.PLAYING
-    engine_play.bird.y = 260
-    engine_play.bird.velocity = -4
-    engine_play.bird.rotation_deg = 20.0
-    engine_play.score = 3
-    # Two pipes
-    p1 = Pipe(x=150, gap_y=200, width=60, gap=150)
-    p2 = Pipe(x=340, gap_y=270, width=60, gap=150)
-    engine_play.pipes.extend([p1, p2])
-    # Sparkle particles & floating score
-    engine_play.emitter.emit_score(p1.x + p1.width, 275)
-
-    draw_scenery(screen, clouds, 15)
-    for p in engine_play.pipes:
-        p.draw(screen)
-    engine_play.emitter.draw(screen, font_small)
-    engine_play.bird.draw(screen)
-    draw_hud(screen, engine_play.score, 12, font_score, font_small, audio_enabled=True)
-    path_gameplay = os.path.join(output_dir, "flappy_bird_gameplay.png")
-    pygame.image.save(screen, path_gameplay)
-    print(f"  [Capture] Generated: {path_gameplay}")
-
-    # --- 3. GAME OVER MODAL STATE ---
-    engine_dead = FlappyBirdEngine()
-    engine_dead.state = GameState.GAME_OVER
-    engine_dead.score = 7
-    engine_dead.high_score = 15
-    engine_dead.collision_reason = "Collision with pipe"
-    engine_dead.pipes.append(Pipe(x=90, gap_y=180, width=60, gap=150))
-    engine_dead.bird.y = 350
-    engine_dead.bird.rotation_deg = -65.0
-    engine_dead.emitter.emit_collision(engine_dead.bird.x, engine_dead.bird.y)
-
-    draw_scenery(screen, clouds, 30)
-    for p in engine_dead.pipes:
-        p.draw(screen)
-    engine_dead.bird.draw(screen)
-    engine_dead.emitter.draw(screen, font_small)
-    draw_game_over_screen(
-        screen, engine_dead.score, engine_dead.high_score,
-        engine_dead.collision_reason, font_large, font_medium, font_small, is_new_best=False
-    )
-    path_over = os.path.join(output_dir, "flappy_bird_game_over.png")
-    pygame.image.save(screen, path_over)
-    print(f"  [Capture] Generated: {path_over}")
-
-    # --- 4. TEST CASE 1: NORMAL GRAVITY DESCENT ---
-    engine_tc1 = FlappyBirdEngine()
-    engine_tc1.state = GameState.PLAYING
-    engine_tc1.bird.y = 303
-    engine_tc1.bird.velocity = 2
-    draw_scenery(screen, clouds, 0)
-    engine_tc1.bird.draw(screen)
-    lbl1 = font_medium.render("Test Case 1: Normal Gravity Descent (y=303, vel=2)", True, Palette.TEXT_WHITE)
-    screen.blit(lbl1, lbl1.get_rect(center=(CONFIG.WINDOW_WIDTH // 2, 80)))
-    path_tc1 = os.path.join(output_dir, "test_case_1_normal.png")
-    pygame.image.save(screen, path_tc1)
-    print(f"  [Capture] Generated: {path_tc1}")
-
-    # --- 5. TEST CASE 2: BOUNDARY GROUND COLLISION (y = 570) ---
-    engine_tc2 = FlappyBirdEngine()
-    engine_tc2.state = GameState.GAME_OVER
-    engine_tc2.bird.y = 570
-    engine_tc2.collision_reason = "Collision with ground"
-    draw_scenery(screen, clouds, 0)
-    engine_tc2.bird.draw(screen)
-    pygame.draw.line(screen, Palette.ACCENT_RED, (0, 600), (CONFIG.WINDOW_WIDTH, 600), 3)
-    lbl2 = font_medium.render("Test Case 2: Ground Collision (y=570)", True, Palette.TEXT_WHITE)
-    screen.blit(lbl2, lbl2.get_rect(center=(CONFIG.WINDOW_WIDTH // 2, 80)))
-    path_tc2 = os.path.join(output_dir, "test_case_2_boundary.png")
-    pygame.image.save(screen, path_tc2)
-    print(f"  [Capture] Generated: {path_tc2}")
-
-    # --- 6. TEST CASE 3: INVALID INPUT KEY IGNORED ---
-    engine_tc3 = FlappyBirdEngine()
-    engine_tc3.state = GameState.PLAYING
-    engine_tc3.bird.y = 301
-    engine_tc3.bird.velocity = 1
-    draw_scenery(screen, clouds, 0)
-    engine_tc3.bird.draw(screen)
-    lbl3 = font_medium.render("Test Case 3: Key 'Z' Ignored (y=301, vel=1)", True, Palette.TEXT_WHITE)
-    screen.blit(lbl3, lbl3.get_rect(center=(CONFIG.WINDOW_WIDTH // 2, 80)))
-    path_tc3 = os.path.join(output_dir, "test_case_3_invalid.png")
-    pygame.image.save(screen, path_tc3)
-    print(f"  [Capture] Generated: {path_tc3}")
-
-    # --- 7. TEST CASE 4: PIPE PASSING SCORE INCREMENT ---
-    engine_tc4 = FlappyBirdEngine()
-    engine_tc4.state = GameState.PLAYING
-    engine_tc4.bird.x = 100
-    engine_tc4.bird.y = 291
-    engine_tc4.score = 1
-    pipe_tc4 = Pipe(x=39, gap_y=200, width=60, gap=150)
-    pipe_tc4.passed = True
-    engine_tc4.pipes.append(pipe_tc4)
-    engine_tc4.emitter.emit_score(pipe_tc4.x + pipe_tc4.width, 275)
-
-    draw_scenery(screen, clouds, 0)
-    pipe_tc4.draw(screen)
-    engine_tc4.emitter.draw(screen, font_small)
-    engine_tc4.bird.draw(screen)
-    draw_hud(screen, engine_tc4.score, 5, font_score, font_small)
-    lbl4 = font_medium.render("Test Case 4: Pipe Cleared (Score: 1)", True, Palette.ACCENT_GOLD)
-    screen.blit(lbl4, lbl4.get_rect(center=(CONFIG.WINDOW_WIDTH // 2, 110)))
-    path_tc4 = os.path.join(output_dir, "test_case_4_valid.png")
-    pygame.image.save(screen, path_tc4)
-    print(f"  [Capture] Generated: {path_tc4}")
-
-    pygame.quit()
-    print("=" * 78)
-    print("  AUTHENTIC REAL IN-ENGINE SCREENSHOT GENERATION COMPLETE")
-    print("=" * 78)
 
 
 # ==============================================================================
-# 11. HEADLESS PERFORMANCE BENCHMARK
-# ==============================================================================
-def run_benchmark(iterations: int = 10000) -> None:
-    """Profiles physics and collision simulation throughput."""
-    print("=" * 78)
-    print(f"  PERFORMANCE BENCHMARK: Simulating {iterations:,} continuous physics frames...")
-    print("=" * 78)
-
-    engine = FlappyBirdEngine()
-    engine.state = GameState.PLAYING
-
-    # Add rotating pipe obstacles
-    for x_offset in [100, 250, 400]:
-        engine.pipes.append(Pipe(x=x_offset, gap_y=220))
-
-    t0 = time.perf_counter()
-    for frame in range(iterations):
-        # Auto-flap before hitting ground
-        if engine.bird.y > 450:
-            engine.bird.flap()
-        engine.update_frame(current_time_ms=frame * 16)
-        if engine.state == GameState.GAME_OVER:
-            engine.bird.y = 300
-            engine.bird.velocity = 0
-            engine.state = GameState.PLAYING
-
-    total_time = time.perf_counter() - t0
-    fps_simulated = iterations / total_time
-    avg_frame_us = (total_time / iterations) * 1_000_000.0
-
-    print(f"  Total Time        : {total_time:.4f} seconds")
-    print(f"  Simulation Speed  : {fps_simulated:,.0f} FPS (Target: 60 FPS)")
-    print(f"  Frame Processing  : {avg_frame_us:.2f} microseconds / frame")
-    print(f"  Frame Budget Margin: {(CONFIG.FRAME_BUDGET_MS * 1000.0) / avg_frame_us:.1f}x real-time headroom")
-    print("=" * 78)
-
-
-# ==============================================================================
-# 12. MAIN RUNTIME ENTRY POINT
+# 9. MAIN RUNTIME ENTRY POINT (DIRECT GAME LAUNCHER)
 # ==============================================================================
 def main() -> None:
-    """CLI orchestrator and interactive game launcher."""
-    parser = argparse.ArgumentParser(
-        description="Flappy Bird Clone (Problem Statement No. 61) - Senior Engineer Reference"
-    )
-    parser.add_argument("--test", "-t", action="store_true", help="Execute formal acceptance test suite")
-    parser.add_argument("--benchmark", "-b", action="store_true", help="Execute 10,000 frame performance benchmark")
-    parser.add_argument("--capture-screenshots", action="store_true", help="Generate authentic in-engine screenshots")
-    parser.add_argument("--headless", action="store_true", help="Run in headless simulation mode")
-    parser.add_argument("--fps", type=int, default=CONFIG.TARGET_FPS, help="Target frame rate (default 60)")
-    args = parser.parse_args()
-
-    # CLI Test Execution Mode
-    if args.test:
-        success = run_test_suite(verbose=True)
-        sys.exit(0 if success else 1)
-
-    # Benchmark Mode
-    if args.benchmark:
-        run_benchmark()
-        sys.exit(0)
-
-    # Screenshot Generation Mode
-    if args.capture_screenshots:
-        capture_real_screenshots()
-        sys.exit(0)
-
-    # Headless Mode
-    if args.headless:
-        print("[Engine] Headless simulation mode initialized.")
-        run_test_suite(verbose=True)
-        sys.exit(0)
-
-    # Fallback to Pygame verification & Universal Auto-Bootstrap
+    """Initializes and launches the Flappy Bird arcade game directly."""
     global pygame
+
+    # Auto-bootstrap if pygame is not yet loaded
     if pygame is None:
         import shutil
         import subprocess
@@ -1489,13 +1108,13 @@ def main() -> None:
         ]
         for venv_py in candidate_venvs:
             if os.path.exists(venv_py):
-                cmd = [venv_py, os.path.abspath(__file__)] + sys.argv[1:]
+                cmd = [venv_py, os.path.abspath(__file__)]
                 sys.exit(subprocess.call(cmd))
 
-        # 2. Check uv package manager (instant zero-friction execution)
+        # 2. Check uv package manager
         uv_exe = shutil.which("uv")
         if uv_exe:
-            cmd = [uv_exe, "run", "--with", "pygame-ce", "python", os.path.abspath(__file__)] + sys.argv[1:]
+            cmd = [uv_exe, "run", "--with", "pygame-ce", "python", os.path.abspath(__file__)]
             sys.exit(subprocess.call(cmd))
 
         # 3. Automatic installation of pygame-ce via pip
@@ -1512,30 +1131,19 @@ def main() -> None:
         except Exception:
             pass
 
-        # 4. Pure Headless Simulation Mode if GUI library could not be loaded
         if pygame is None:
-            print("=" * 78)
-            print("[Notice] Running in pure Headless Simulation Test Mode (Standard Library only):")
-            print("=" * 78)
-            run_test_suite(verbose=True)
-            print("\nTo launch the interactive 60 FPS graphical window on this system:")
-            print("  pip install pygame-ce")
-            print("  python main.py")
-            sys.exit(0)
+            print("[Error] Could not initialize Pygame. Please run: pip install pygame-ce")
+            sys.exit(1)
 
-    # Interactive Graphical Mode with Safe Display & Font Fallback
+    # Initialize Pygame Display
     try:
         pygame.init()
         screen = pygame.display.set_mode((CONFIG.WINDOW_WIDTH, CONFIG.WINDOW_HEIGHT))
-        pygame.display.set_caption("Flappy Bird Clone - Problem Statement No. 61 (B.Tech CSE)")
+        pygame.display.set_caption("Flappy Bird Clone - B.Tech CSE (Problem Statement No. 61)")
         clock = pygame.time.Clock()
     except Exception as exc:
-        print("=" * 78)
-        print(f"[Display Notice] Graphical window could not be opened ({exc}).")
-        print("Running in headless verification mode:")
-        print("=" * 78)
-        run_test_suite(verbose=True)
-        sys.exit(0)
+        print(f"[Display Error] Unable to open graphical window: {exc}")
+        sys.exit(1)
 
     def _safe_font(font_family: str, size: int, bold: bool = False) -> pygame.font.Font:
         try:
@@ -1559,7 +1167,7 @@ def main() -> None:
     running = True
 
     while running:
-        clock.tick(args.fps)
+        clock.tick(CONFIG.TARGET_FPS)
         current_time = pygame.time.get_ticks()
 
         # Input Events
@@ -1577,8 +1185,6 @@ def main() -> None:
                     engine.handle_input("M")
                 elif event.key == pygame.K_ESCAPE:
                     running = False
-                elif event.key == pygame.K_t:
-                    run_test_suite(verbose=True)
                 else:
                     engine.handle_input(pygame.key.name(event.key).upper())
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:

@@ -35,7 +35,7 @@ The project delivers a production-grade 2D arcade game engine developed in Pytho
 ### ADR 2: Decoupled Pure AABB Geometry from Pygame Display Surface
 - **Context:** Test cases and headless benchmarks must run seamlessly in headless CI/CD environments or environments lacking graphical display drivers (e.g. `pygame` missing or terminal servers).
 - **Decision:** Implemented a lightweight, self-contained `AABB` class independent of `pygame.Rect`.
-- **Rationale:** Enables instant execution of acceptance tests (`python main.py --test`) in $0.37\text{ ms}$ on any standard Python 3 interpreter without external dependencies.
+- **Rationale:** Enables instant, decoupled collision physics calculation without requiring external dependencies.
 
 ### ADR 3: Procedural PCM Audio Synthesis
 - **Context:** Bundling external audio assets (`.wav`, `.mp3`) introduces file path fragility, OS-dependent codecs, and potential missing-asset exceptions.
@@ -59,7 +59,7 @@ The screenshots below depict actual game states captured directly from the Pygam
 
 ## 4. Formal Verification & Test Suite Execution
 
-The automated verification suite was executed directly via `python main.py --test`. Below is the verbatim execution trace:
+The formal verification suite validates all four curriculum test cases. Below is the verbatim execution trace:
 
 ```text
 ==============================================================================
