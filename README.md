@@ -62,9 +62,6 @@ The project includes built-in verification for all four required test cases:
 | :---: | :---: |
 | ![Test Case 3](screenshots/test_case_3_invalid.png) | ![Test Case 4](screenshots/test_case_4_valid.png) |
 
-### Terminal Verification
-![All Tests Passed](screenshots/test_case_all_pass_vscode.png)
-
 ---
 
 ## 5. How to Run the Game
@@ -110,6 +107,5 @@ Flappy-bird-clone/
     ├── test_case_1_normal.png
     ├── test_case_2_boundary.png
     ├── test_case_3_invalid.png
-    ├── test_case_4_valid.png
-    └── test_case_all_pass_vscode.png
+    └── test_case_4_valid.png
 ```
