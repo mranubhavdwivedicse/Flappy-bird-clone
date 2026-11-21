@@ -128,6 +128,7 @@ All four mandatory curriculum test cases and formal specifications are fully imp
 The game is engineered for direct, zero-friction execution. Running `python main.py` automatically initializes dependencies and launches the full 60 FPS interactive arcade game immediately:
 
 ```bash
+# Run the game directly (dependencies auto-install if missing):
 python main.py
 ```
 
@@ -157,11 +158,10 @@ python main.py
 ## 7. Project File Structure
 
 ```text
-E:\Flappy Bird Clone/
+Flappy-bird-clone/
 ├── main.py                     # Single-file senior reference implementation
 ├── README.md                   # Comprehensive architectural & technical specification
 ├── summary.md                  # Formal academic evaluation & submission report
-├── .flappy_scores.json         # High score persistent data store
 └── screenshots/
     ├── flappy_bird_title.png   # In-engine Ready/Start screen render
     ├── flappy_bird_gameplay.png# In-engine active 60 FPS gameplay render
@@ -169,5 +169,6 @@ E:\Flappy Bird Clone/
     ├── test_case_1_normal.png  # In-engine Test Case 1 simulation frame
     ├── test_case_2_boundary.png# In-engine Test Case 2 ground collision frame
     ├── test_case_3_invalid.png # In-engine Test Case 3 keystroke rejection frame
-    └── test_case_4_valid.png   # In-engine Test Case 4 scoring pass frame
+    ├── test_case_4_valid.png   # In-engine Test Case 4 scoring pass frame
+    └── test_case_all_pass_vscode.png # Automated test execution capture
 ```
