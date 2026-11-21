@@ -130,6 +130,9 @@ The game is engineered for direct, zero-friction execution. Running `python main
 ```bash
 # Run the game directly (dependencies auto-install if missing):
 python main.py
+
+# Optional: Run formal 4/4 acceptance test suite verification:
+python main.py --test
 ```
 
 ### 6.1 In-Game Control Bindings
@@ -139,6 +142,7 @@ python main.py
 | **`SPACE` / `R`** | Immediate Restart to Initial State | `GAME_OVER` |
 | **`P`** | Toggle Pause / Resume | `PLAYING` $\longleftrightarrow$ `PAUSED` |
 | **`M`** | Toggle Procedural Chiptune Audio | All States |
+| **`T`** | Run & Verify 4/4 Acceptance Test Suite | All States |
 | **`ESC`** | Graceful Exit | All States |
 
 ### Benchmark Telemetry
