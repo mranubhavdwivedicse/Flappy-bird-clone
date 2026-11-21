@@ -13,7 +13,7 @@ IF EXIST ".venv\Scripts\python.exe" (
 
 where uv >nul 2>nul
 IF %ERRORLEVEL% EQU 0 (
-    uv run --with pygame main.py --test
+    uv run --with pygame-ce main.py --test
     goto end
 )
 
